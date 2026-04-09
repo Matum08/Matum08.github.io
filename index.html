@@ -3,147 +3,246 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional Voltage Drop Calculator (R & X)</title>
+    <title>คำนวณแรงดันตก — งานติดตั้งโคมไฟ</title>
     <style>
-        :root { --primary-color: #2c3e50; --accent-color: #e67e22; }
-        body { font-family: 'Kanit', sans-serif; background-color: #ecf0f1; display: flex; justify-content: center; padding: 20px; }
-        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); width: 100%; max-width: 650px; }
-        h2 { color: var(--primary-color); text-align: center; margin-bottom: 5px; }
-        p.tagline { text-align: center; color: #7f8c8d; font-size: 0.85em; margin-bottom: 25px; }
-        .section-title { font-size: 0.9em; font-weight: bold; color: var(--accent-color); border-bottom: 1px solid #eee; margin: 20px 0 10px; padding-bottom: 5px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .input-group { margin-bottom: 12px; }
-        label { display: block; margin-bottom: 4px; font-weight: 500; color: #34495e; font-size: 0.85em; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 6px; box-sizing: border-box; font-size: 14px; transition: 0.2s; }
-        input:focus { border-color: var(--accent-color); outline: none; }
-        .full-width { grid-column: span 2; }
-        button { width: 100%; padding: 15px; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 20px; transition: 0.3s; }
-        button:hover { background-color: #1a252f; transform: translateY(-1px); }
-        #result { margin-top: 25px; padding: 20px; border-radius: 10px; display: none; line-height: 1.6; }
-        .success { background-color: #d5f5e3; color: #1d8348; border-left: 5px solid #2ecc71; }
-        .warning { background-color: #fef5e7; color: #af601a; border-left: 5px solid #f39c12; }
-        .danger { background-color: #fadbd8; color: #943126; border-left: 5px solid #e74c3c; }
-        .main-val { font-size: 1.4em; font-weight: bold; display: block; margin: 10px 0; }
-        small { font-size: 0.8em; opacity: 0.8; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Kanit', sans-serif; background: #f4f5f7; display: flex; justify-content: center; padding: 24px 16px; min-height: 100vh; }
+        .container { width: 100%; max-width: 620px; }
+        h1 { font-size: 20px; font-weight: 600; color: #1a1a2e; text-align: center; margin-bottom: 4px; }
+        .subtitle { font-size: 13px; color: #666; text-align: center; margin-bottom: 20px; }
+        .card { background: #fff; border: 1px solid #e2e4e8; border-radius: 12px; padding: 20px; margin-bottom: 14px; }
+        .card-title { font-size: 15px; font-weight: 600; color: #1a1a2e; margin-bottom: 16px; }
+        .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .full { grid-column: span 2; }
+        .ig { display: flex; flex-direction: column; gap: 5px; }
+        .ig label { font-size: 13px; color: #555; font-weight: 500; }
+        .ig input, .ig select {
+            width: 100%; padding: 10px 12px; border: 1px solid #d0d3db;
+            border-radius: 8px; font-size: 14px; color: #1a1a2e;
+            background: #fff; transition: border-color 0.2s;
+        }
+        .ig input:focus, .ig select:focus { outline: none; border-color: #3b82f6; }
+        .ig input[readonly] { background: #f4f5f7; color: #888; }
+        .note { font-size: 11px; color: #999; line-height: 1.4; }
+        .summary-row { margin-top: 10px; font-size: 13px; color: #555; }
+        .summary-row span { font-weight: 600; color: #1a1a2e; }
+        .mode-desc { font-size: 12px; color: #666; margin-top: 6px; padding: 8px 10px; background: #f4f5f7; border-radius: 6px; line-height: 1.5; }
+        .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+        .metric { background: #f4f5f7; border-radius: 8px; padding: 12px; text-align: center; }
+        .metric-lbl { font-size: 11px; color: #888; margin-bottom: 4px; }
+        .metric-val { font-size: 22px; font-weight: 600; color: #1a1a2e; line-height: 1; }
+        .metric-unit { font-size: 11px; color: #999; margin-top: 2px; }
+        .status { border-radius: 8px; padding: 12px 14px; font-size: 14px; font-weight: 600; margin-bottom: 14px; }
+        .s-idle  { background: #f4f5f7; color: #888; }
+        .s-ok    { background: #d1fae5; color: #065f46; }
+        .s-warn  { background: #fef3c7; color: #92400e; }
+        .s-danger{ background: #fee2e2; color: #991b1b; }
+        .info-box { background: #f4f5f7; border-radius: 8px; padding: 12px 14px; font-size: 13px; color: #555; line-height: 1.7; }
+        .info-box code { font-family: 'Courier New', monospace; font-size: 12px; color: #1a1a2e; background: #e5e7eb; padding: 1px 4px; border-radius: 3px; }
+        @media(max-width: 460px) {
+            .grid2, .metrics { grid-template-columns: 1fr; }
+            .full { grid-column: span 1; }
+        }
     </style>
 </head>
 <body>
-
 <div class="container">
-    <h2>เครื่องคำนวณแรงดันตก</h2>
-    <p class="tagline">สูตรแม่นยำ: VD = 2 x I(R cosθ + X sinθ) x L</p>
-    
-    <div class="grid">
-        <div class="input-group full-width">
-            <label>ระบบไฟฟ้า</label>
-            <select id="phase">
-                <option value="1">1 เฟส (230V)</option>
-                <option value="3">3 เฟส (400V)</option>
-            </select>
-        </div>
+    <h1>คำนวณแรงดันตก — งานติดตั้งโคมไฟ</h1>
+    <p class="subtitle">มาตรฐาน วสท. / IEC &nbsp;|&nbsp; รองรับโหลดรวมศูนย์และโหลดกระจาย</p>
 
-        <div class="section-title full-width">ข้อมูลโหลด (Load Info)</div>
-        <div class="input-group">
-            <label>จำนวนโคม (ตัว)</label>
-            <input type="number" id="qty" placeholder="0" oninput="updateTotal()">
+    <!-- ข้อมูลระบบและโหลด -->
+    <div class="card">
+        <div class="card-title">ข้อมูลระบบและโหลด</div>
+        <div class="grid2">
+            <div class="ig full">
+                <label>ระบบไฟฟ้า</label>
+                <select id="phase">
+                    <option value="1">1 เฟส (230 V)</option>
+                    <option value="3">3 เฟส (400 V)</option>
+                </select>
+            </div>
+            <div class="ig">
+                <label>จำนวนโคม (ตัว)</label>
+                <input type="number" id="qty" min="1" step="1" placeholder="เช่น 10">
+            </div>
+            <div class="ig">
+                <label>วัตต์ต่อโคม (W)</label>
+                <input type="number" id="watt" min="1" step="1" placeholder="เช่น 100">
+            </div>
+            <div class="ig">
+                <label>ระยะห่างระหว่างเสา (m)</label>
+                <input type="number" id="span" min="0" step="1" placeholder="เช่น 30">
+            </div>
+            <div class="ig">
+                <label>ระยะสายก่อนถึงโคมแรก (m)</label>
+                <input type="number" id="feeder" value="0" min="0" step="1" placeholder="0">
+            </div>
         </div>
-        <div class="input-group">
-            <label>วัตต์ต่อโคม (W)</label>
-            <input type="number" id="watt" placeholder="0" oninput="updateTotal()">
-        </div>
-        <div class="input-group">
-            <label>ระยะห่างระหว่างเสา (m)</label>
-            <input type="number" id="span" placeholder="0" oninput="updateTotal()">
-        </div>
-        <div class="input-group">
-            <label>ระยะทางรวม (L) (m)</label>
-            <input type="number" id="totalLength" readonly style="background: #f9f9f9; color: #7f8c8d;">
-        </div>
-
-        <div class="section-title full-width">พารามิเตอร์สายไฟ (Cable Parameters)</div>
-        <div class="input-group">
-            <label>ค่า R (Ω/km)</label>
-            <input type="number" id="resistance" placeholder="เช่น 7.41" step="0.001">
-        </div>
-        <div class="input-group">
-            <label>ค่า X (Ω/km)</label>
-            <input type="number" id="reactance" value="0.1" step="0.001">
-        </div>
-        <div class="input-group full-width">
-            <label>Power Factor (cos θ)</label>
-            <input type="number" id="pf" value="0.9" step="0.01">
+        <div class="summary-row">
+            ระยะรวม: <span id="total-len">—</span> m
+            &nbsp;|&nbsp; โหลดรวม: <span id="total-watt">—</span> W
         </div>
     </div>
 
-    <button onclick="calculateVD()">คำนวณผลลัพธ์</button>
+    <!-- ข้อมูลสาย -->
+    <div class="card">
+        <div class="card-title">ข้อมูลสาย</div>
+        <div class="grid2">
+            <div class="ig">
+                <label>ค่าความต้านทานสาย (Ω/km)</label>
+                <input type="number" id="resistance" value="7.41" min="0.01" step="0.001" placeholder="เช่น 7.41">
+                <span class="note">Cu 2.5 ตร.มม. ≈ 7.41 &nbsp;|&nbsp; 4 ≈ 4.61 &nbsp;|&nbsp; 6 ≈ 3.08 &nbsp;|&nbsp; 10 ≈ 1.83</span>
+            </div>
+            <div class="ig">
+                <label>Power Factor (cos θ)</label>
+                <input type="number" id="pf" value="0.9" min="0.1" max="1" step="0.01">
+                <span class="note">LED ทั่วไป ≈ 0.85–0.95</span>
+            </div>
+            <div class="ig full">
+                <label>ประเภทการกระจายโหลด</label>
+                <select id="loadmode">
+                    <option value="end">โหลดรวมที่ปลายสาย (Lumped) — อนุรักษ์นิยม</option>
+                    <option value="distributed" selected>โหลดกระจายสม่ำเสมอ (Distributed) — เหมาะกับโคมเรียงแถว</option>
+                </select>
+                <div class="mode-desc" id="mode-desc">
+                    ใช้ระยะ = feeder + (n−1)/2 × span → แม่นยำกว่าสำหรับโคมที่ติดเป็นแถว
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <div id="result"></div>
+    <!-- ผลการคำนวณ -->
+    <div class="card">
+        <div class="card-title">ผลการคำนวณ</div>
+        <div class="metrics">
+            <div class="metric">
+                <div class="metric-lbl">กระแสโหลดรวม</div>
+                <div class="metric-val" id="r-I">—</div>
+                <div class="metric-unit">แอมแปร์ (A)</div>
+            </div>
+            <div class="metric">
+                <div class="metric-lbl">ระยะที่ใช้คำนวณ</div>
+                <div class="metric-val" id="r-Leff">—</div>
+                <div class="metric-unit">เมตร</div>
+            </div>
+            <div class="metric">
+                <div class="metric-lbl">แรงดันตก</div>
+                <div class="metric-val" id="r-VD">—</div>
+                <div class="metric-unit">โวลต์ (V)</div>
+            </div>
+            <div class="metric">
+                <div class="metric-lbl">แรงดันตก (%)</div>
+                <div class="metric-val" id="r-pct">—</div>
+                <div class="metric-unit">เปอร์เซ็นต์</div>
+            </div>
+            <div class="metric">
+                <div class="metric-lbl">แรงดันที่โคมสุดท้าย</div>
+                <div class="metric-val" id="r-Vend">—</div>
+                <div class="metric-unit">โวลต์ (V)</div>
+            </div>
+            <div class="metric">
+                <div class="metric-lbl">ต่ำสุดที่ยอมรับ (5%)</div>
+                <div class="metric-val" id="r-Vmin">—</div>
+                <div class="metric-unit">โวลต์ (V)</div>
+            </div>
+        </div>
+        <div class="status s-idle" id="r-status">กรอกข้อมูลเพื่อดูผล</div>
+        <div class="info-box" id="r-formula">สูตรและค่าที่ใช้คำนวณจะแสดงที่นี่</div>
+    </div>
 </div>
 
 <script>
-function updateTotal() {
-    const qty = parseFloat(document.getElementById('qty').value) || 0;
-    const span = parseFloat(document.getElementById('span').value) || 0;
-    document.getElementById('totalLength').value = qty * span;
-}
+    const inputIds = ['phase','qty','watt','span','feeder','resistance','pf','loadmode'];
+    inputIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.addEventListener('input', calc); el.addEventListener('change', calc); }
+    });
 
-function calculateVD() {
-    const phase = document.getElementById('phase').value;
-    const qty = parseFloat(document.getElementById('qty').value);
-    const wattPerLamp = parseFloat(document.getElementById('watt').value);
-    const L_m = parseFloat(document.getElementById('totalLength').value);
-    const R = parseFloat(document.getElementById('resistance').value);
-    const X = parseFloat(document.getElementById('reactance').value);
-    const cosTheta = parseFloat(document.getElementById('pf').value);
-    const resultDiv = document.getElementById('result');
+    document.getElementById('loadmode').addEventListener('change', function () {
+        const desc = document.getElementById('mode-desc');
+        if (this.value === 'distributed') {
+            desc.textContent = 'ใช้ระยะ = feeder + (n−1)/2 × span → แม่นยำกว่าสำหรับโคมที่ติดเป็นแถว';
+        } else {
+            desc.textContent = 'ใช้ระยะ = feeder + (n−1) × span → สมมติโหลดทั้งหมดอยู่ที่โคมสุดท้าย (อนุรักษ์นิยม)';
+        }
+    });
 
-    if (!qty || !wattPerLamp || !L_m || !R || !X || !cosTheta) {
-        alert("กรุณากรอกข้อมูลให้ครบถ้วนก่อนคำนวณ");
-        return;
+    function calc() {
+        const phase   = parseInt(document.getElementById('phase').value);
+        const qty     = parseFloat(document.getElementById('qty').value);
+        const watt    = parseFloat(document.getElementById('watt').value);
+        const span    = parseFloat(document.getElementById('span').value) || 0;
+        const feeder  = parseFloat(document.getElementById('feeder').value) || 0;
+        const R       = parseFloat(document.getElementById('resistance').value);
+        const pf      = parseFloat(document.getElementById('pf').value) || 0.9;
+        const mode    = document.getElementById('loadmode').value;
+        const Vs      = phase === 1 ? 230 : 400;
+
+        if (!qty || !watt || isNaN(R) || R <= 0) {
+            document.getElementById('total-len').textContent  = '—';
+            document.getElementById('total-watt').textContent = '—';
+            return;
+        }
+
+        const totalWatt = qty * watt;
+        const L_full    = feeder + (qty - 1) * span;
+        document.getElementById('total-len').textContent  = L_full.toFixed(0);
+        document.getElementById('total-watt').textContent = totalWatt.toLocaleString();
+
+        // กระแส
+        const I = phase === 1
+            ? totalWatt / (Vs * pf)
+            : totalWatt / (Math.sqrt(3) * Vs * pf);
+
+        // ระยะที่ใช้คำนวณ
+        const Leff = mode === 'distributed'
+            ? feeder + ((qty - 1) / 2) * span
+            : L_full;
+
+        // แรงดันตก
+        const VD = phase === 1
+            ? (2 * Leff * I * R) / 1000
+            : (Math.sqrt(3) * Leff * I * R) / 1000;
+
+        const pct  = (VD / Vs) * 100;
+        const Vend = Vs - VD;
+        const Vmin = Vs * 0.95;
+
+        document.getElementById('r-I').textContent    = I.toFixed(2);
+        document.getElementById('r-Leff').textContent = Leff.toFixed(1);
+        document.getElementById('r-VD').textContent   = VD.toFixed(2);
+        document.getElementById('r-pct').textContent  = pct.toFixed(2) + '%';
+        document.getElementById('r-Vend').textContent = Vend.toFixed(1);
+        document.getElementById('r-Vmin').textContent = Vmin.toFixed(1);
+
+        const statusEl = document.getElementById('r-status');
+        if (pct <= 3) {
+            statusEl.className   = 'status s-ok';
+            statusEl.textContent = 'ผ่านเกณฑ์ — แรงดันตกไม่เกิน 3% (มาตรฐาน วสท. / IEC)';
+        } else if (pct <= 5) {
+            statusEl.className   = 'status s-warn';
+            statusEl.textContent = 'ควรระวัง — แรงดันตก 3–5% ควรพิจารณาเพิ่มขนาดสาย';
+        } else {
+            statusEl.className   = 'status s-danger';
+            statusEl.textContent = 'เกินเกณฑ์ — แรงดันตกเกิน 5% ต้องเพิ่มขนาดสายหรือลดระยะทาง';
+        }
+
+        const phaseFormula = phase === 1
+            ? 'VD = 2 × L_eff × I × R / 1000'
+            : 'VD = √3 × L_eff × I × R / 1000';
+
+        const modeNote = mode === 'distributed'
+            ? `L_eff = ${feeder} + (${qty}−1)/2 × ${span} = <strong>${Leff.toFixed(1)} m</strong>`
+            : `L_eff = ${feeder} + (${qty}−1) × ${span} = <strong>${Leff.toFixed(1)} m</strong>`;
+
+        document.getElementById('r-formula').innerHTML =
+            `<code>${phaseFormula}</code><br>${modeNote}<br>` +
+            `I = <strong>${I.toFixed(2)} A</strong> &nbsp;|&nbsp; ` +
+            `R = <strong>${R} Ω/km</strong> &nbsp;|&nbsp; ` +
+            `cos θ = <strong>${pf}</strong>`;
     }
 
-    // แปลงหน่วย L เป็น km
-    const L_km = L_m / 1000;
-    const totalWatt = qty * wattPerLamp;
-    const V_source = (phase === "1") ? 230 : 400;
-    
-    // คำนวณ Sin Theta
-    const sinTheta = Math.sqrt(1 - Math.pow(cosTheta, 2));
-
-    // 1. คำนวณกระแส (I)
-    let I = (phase === "1") ? 
-            (totalWatt / (V_source * cosTheta)) : 
-            (totalWatt / (Math.sqrt(3) * V_source * cosTheta));
-
-    // 2. คำนวณแรงดันตก (VD) ตามสูตรที่ต้องการ
-    // สำหรับ 1 เฟส: 2 * I * (R cosθ + X sinθ) * L
-    // สำหรับ 3 เฟส: √3 * I * (R cosθ + X sinθ) * L
-    let impedancePart = (R * cosTheta) + (X * sinTheta);
-    let vd = (phase === "1") ? 
-             (2 * I * impedancePart * L_km) : 
-             (Math.sqrt(3) * I * impedancePart * L_km);
-
-    // 3. ผลลัพธ์แรงดันปลายทาง
-    let V_end = V_source - vd;
-    let percentage = (vd / V_source) * 100;
-    
-    resultDiv.style.display = "block";
-    let statusClass = (percentage <= 3) ? "success" : (percentage <= 5 ? "warning" : "danger");
-    
-    resultDiv.className = statusClass;
-    resultDiv.innerHTML = `
-        <strong>📋 ผลการคำนวณแบบละเอียด:</strong><br>
-        • โหลดรวม: <b>${totalWatt.toLocaleString()} W</b> (กระแส <b>${I.toFixed(2)} A</b>)<br>
-        • แรงดันต้นทาง: <b>${V_source} V</b><br>
-        <hr>
-        • แรงดันตกสะสม (VD): <span style="font-size:1.1em; color:#c0392b;"><b>${vd.toFixed(2)} V</b></span> (${percentage.toFixed(2)}%)<br>
-        <span class="main-val">⚡ แรงดันปลายสายเหลือ: ${V_end.toFixed(2)} V</span>
-        <hr>
-        <strong>สถานะ:</strong> ${percentage <= 3 ? "✅ ดีเยี่ยม (ไม่เกิน 3%)" : (percentage <= 5 ? "⚠️ เฝ้าระวัง (3-5%)" : "❌ ต้องแก้ไข (เกิน 5%)")}
-        <br><small>* คำนวณโดยพิจารณาค่า Reactance และ Power Factor แล้ว</small>
-    `;
-}
+    calc();
 </script>
-
 </body>
 </html>
