@@ -49,7 +49,7 @@
 <div class="container">
     <h1>คำนวณแรงดันตก — งานติดตั้งโคมไฟ</h1>
     <p class="subtitle">มาตรฐาน วสท. / IEC &nbsp;|&nbsp; รองรับโหลดรวมศูนย์และโหลดกระจาย</p>
-
+ 
     <!-- ข้อมูลระบบและโหลด -->
     <div class="card">
         <div class="card-title">ข้อมูลระบบและโหลด</div>
@@ -83,7 +83,7 @@
             &nbsp;|&nbsp; โหลดรวม: <span id="total-watt">—</span> W
         </div>
     </div>
-
+ 
     <!-- ข้อมูลสาย -->
     <div class="card">
         <div class="card-title">ข้อมูลสาย</div>
@@ -110,7 +110,7 @@
             </div>
         </div>
     </div>
-
+ 
     <!-- ผลการคำนวณ -->
     <div class="card">
         <div class="card-title">ผลการคำนวณ</div>
@@ -150,14 +150,14 @@
         <div class="info-box" id="r-formula">สูตรและค่าที่ใช้คำนวณจะแสดงที่นี่</div>
     </div>
 </div>
-
+ 
 <script>
     const inputIds = ['phase','qty','watt','span','feeder','resistance','pf','loadmode'];
     inputIds.forEach(id => {
         const el = document.getElementById(id);
         if (el) { el.addEventListener('input', calc); el.addEventListener('change', calc); }
     });
-
+ 
     document.getElementById('loadmode').addEventListener('change', function () {
         const desc = document.getElementById('mode-desc');
         if (this.value === 'distributed') {
@@ -166,7 +166,7 @@
             desc.textContent = 'ใช้ระยะ = feeder + (n−1) × span → สมมติโหลดทั้งหมดอยู่ที่โคมสุดท้าย (อนุรักษ์นิยม)';
         }
     });
-
+ 
     function calc() {
         const phase   = parseInt(document.getElementById('phase').value);
         const qty     = parseFloat(document.getElementById('qty').value);
@@ -177,44 +177,44 @@
         const pf      = parseFloat(document.getElementById('pf').value) || 0.9;
         const mode    = document.getElementById('loadmode').value;
         const Vs      = phase === 1 ? 230 : 400;
-
+ 
         if (!qty || !watt || isNaN(R) || R <= 0) {
             document.getElementById('total-len').textContent  = '—';
             document.getElementById('total-watt').textContent = '—';
             return;
         }
-
+ 
         const totalWatt = qty * watt;
         const L_full    = feeder + (qty - 1) * span;
         document.getElementById('total-len').textContent  = L_full.toFixed(0);
         document.getElementById('total-watt').textContent = totalWatt.toLocaleString();
-
+ 
         // กระแส
         const I = phase === 1
             ? totalWatt / (Vs * pf)
             : totalWatt / (Math.sqrt(3) * Vs * pf);
-
+ 
         // ระยะที่ใช้คำนวณ
         const Leff = mode === 'distributed'
             ? feeder + ((qty - 1) / 2) * span
             : L_full;
-
+ 
         // แรงดันตก
         const VD = phase === 1
             ? (2 * Leff * I * R) / 1000
             : (Math.sqrt(3) * Leff * I * R) / 1000;
-
+ 
         const pct  = (VD / Vs) * 100;
         const Vend = Vs - VD;
         const Vmin = Vs * 0.95;
-
+ 
         document.getElementById('r-I').textContent    = I.toFixed(2);
         document.getElementById('r-Leff').textContent = Leff.toFixed(1);
         document.getElementById('r-VD').textContent   = VD.toFixed(2);
         document.getElementById('r-pct').textContent  = pct.toFixed(2) + '%';
         document.getElementById('r-Vend').textContent = Vend.toFixed(1);
         document.getElementById('r-Vmin').textContent = Vmin.toFixed(1);
-
+ 
         const statusEl = document.getElementById('r-status');
         if (pct <= 3) {
             statusEl.className   = 'status s-ok';
@@ -226,22 +226,22 @@
             statusEl.className   = 'status s-danger';
             statusEl.textContent = 'เกินเกณฑ์ — แรงดันตกเกิน 5% ต้องเพิ่มขนาดสายหรือลดระยะทาง';
         }
-
+ 
         const phaseFormula = phase === 1
             ? 'VD = 2 × L_eff × I × R / 1000'
             : 'VD = √3 × L_eff × I × R / 1000';
-
+ 
         const modeNote = mode === 'distributed'
             ? `L_eff = ${feeder} + (${qty}−1)/2 × ${span} = <strong>${Leff.toFixed(1)} m</strong>`
             : `L_eff = ${feeder} + (${qty}−1) × ${span} = <strong>${Leff.toFixed(1)} m</strong>`;
-
+ 
         document.getElementById('r-formula').innerHTML =
             `<code>${phaseFormula}</code><br>${modeNote}<br>` +
             `I = <strong>${I.toFixed(2)} A</strong> &nbsp;|&nbsp; ` +
             `R = <strong>${R} Ω/km</strong> &nbsp;|&nbsp; ` +
             `cos θ = <strong>${pf}</strong>`;
     }
-
+ 
     calc();
 </script>
 </body>
