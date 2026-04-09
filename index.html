@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เครื่องคำนวณแรงดันตกและแรงดันปลายทาง</title>
+    <style>
+        body { font-family: 'Kanit', sans-serif; background-color: #f8f9fa; display: flex; justify-content: center; padding: 20px; }
+        .container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
+        h2 { color: #1565c0; text-align: center; margin-bottom: 5px; }
+        p.subtitle { text-align: center; color: #666; margin-bottom: 25px; font-size: 0.9em; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 500; color: #444; font-size: 0.9em; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+        .full-width { grid-column: span 2; }
+        button { width: 100%; padding: 15px; background-color: #1565c0; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 15px; transition: 0.3s; }
+        button:hover { background-color: #0d47a1; }
+        #result { margin-top: 25px; padding: 20px; border-radius: 8px; display: none; line-height: 1.6; border: 2px solid transparent; }
+        .success { background-color: #e8f5e9; color: #2e7d32; border-color: #c8e6c9; }
+        .warning { background-color: #fff3e0; color: #ef6c00; border-color: #ffe0b2; }
+        .danger { background-color: #ffebee; color: #c62828; border-color: #ffcdd2; }
+        .voltage-display { font-size: 1.2em; font-weight: bold; margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.5); border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>คำนวณแรงดัน (Voltage Analysis)</h2>
+    <p class="subtitle">มาตรฐาน 230V/400V - สำหรับงานติดตั้งโคมไฟ</p>
+    
+    <div class="grid">
+        <div class="input-group full-width">
+            <label>ระบบไฟฟ้า</label>
+            <select id="phase">
+                <option value="1">1 เฟส (230V)</option>
+                <option value="3">3 เฟส (400V)</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label>จำนวนโคม (ตัว)</label>
+            <input type="number" id="qty" placeholder="0" oninput="updateTotal()">
+        </div>
+
+        <div class="input-group">
+            <label>วัตต์ต่อโคม (W)</label>
+            <input type="number" id="watt" placeholder="0" oninput="updateTotal()">
+        </div>
+
+        <div class="input-group">
+            <label>ระยะระหว่างเสา (เมตร)</label>
+            <input type="number" id="span" placeholder="0" oninput="updateTotal()">
+        </div>
+
+        <div class="input-group">
+            <label>ระยะรวมถึงโคมสุดท้าย (m)</label>
+            <input type="number" id="totalLength" readonly style="background: #eee;">
+        </div>
+
+        <div class="input-group">
+            <label>ค่า R สายไฟ (Ω/km)</label>
+            <input type="number" id="resistance" placeholder="เช่น 7.41 (สาย 2.5)" step="0.001">
+        </div>
+
+        <div class="input-group">
+            <label>Power Factor (cos θ)</label>
+            <input type="number" id="pf" value="0.9" step="0.01">
+        </div>
+    </div>
+
+    <button onclick="calculateVD()">คำนวณและเช็คแรงดันปลายทาง</button>
+
+    <div id="result"></div>
+</div>
+
+<script>
+function updateTotal() {
+    const qty = parseFloat(document.getElementById('qty').value) || 0;
+    const span = parseFloat(document.getElementById('span').value) || 0;
+    document.getElementById('totalLength').value = qty * span;
+}
+
+function calculateVD() {
+    const phase = document.getElementById('phase').value;
+    const qty = parseFloat(document.getElementById('qty').value);
+    const wattPerLamp = parseFloat(document.getElementById('watt').value);
+    const L = parseFloat(document.getElementById('totalLength').value);
+    const R = parseFloat(document.getElementById('resistance').value);
+    const pf = parseFloat(document.getElementById('pf').value);
+    const resultDiv = document.getElementById('result');
+
+    if (!qty || !wattPerLamp || !L || !R) {
+        alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+        return;
+    }
+
+    const totalWatt = qty * wattPerLamp;
+    let V_source = (phase === "1") ? 230 : 400;
+    
+    // 1. กระแส (I)
+    let I = (phase === "1") ? 
+            (totalWatt / (V_source * pf)) : 
+            (totalWatt / (Math.sqrt(3) * V_source * pf));
+
+    // 2. แรงดันตก (Voltage Drop)
+    let vd = (phase === "1") ? 
+             (2 * L * I * R) / 1000 : 
+             (Math.sqrt(3) * L * I * R) / 1000;
+
+    // 3. แรงดันที่เหลือ (Receiving Voltage)
+    let V_end = V_source - vd;
+    let percentage = (vd / V_source) * 100;
+    let remainPercent = 100 - percentage;
+    
+    resultDiv.style.display = "block";
+    
+    let statusClass = "success";
+    let statusText = "✅ สถานะ: ปกติ (แรงดันตกไม่เกิน 3%)";
+    
+    if (percentage > 3 && percentage <= 5) {
+        statusClass = "warning";
+        statusText = "⚠️ สถานะ: เฝ้าระวัง (แรงดันตก 3-5%)";
+    } else if (percentage > 5) {
+        statusClass = "danger";
+        statusText = "❌ สถานะ: อันตราย (แรงดันตกเกิน 5%)";
+    }
+    
+    resultDiv.className = statusClass;
+    resultDiv.innerHTML = `
+        <strong>📊 รายงานสรุป:</strong><br>
+        • แรงดันต้นทาง: <b>${V_source} V</b><br>
+        • โหลดรวม: <b>${totalWatt.toLocaleString()} W</b> (${I.toFixed(2)} A)<br>
+        <hr>
+        • แรงดันที่ตกหายไป: <span style="color:red"><b>- ${vd.toFixed(2)} V</b></span> (${percentage.toFixed(2)}%)<br>
+        <div class="voltage-display">
+            ⚡ แรงดันที่เหลือปลายสาย: ${V_end.toFixed(2)} V (${remainPercent.toFixed(2)}%)
+        </div>
+        <hr>
+        <strong>${statusText}</strong><br>
+        <small>* มาตรฐานแนะนำให้แรงดันปลายทางไม่ควรต่ำกว่า ${(V_source * 0.95).toFixed(1)} V (ลดลง 5%)</small>
+    `;
+}
+</script>
+
+</body>
+</html>
